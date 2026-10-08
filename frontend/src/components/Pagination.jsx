@@ -1,0 +1,53 @@
+const Pagination = ({
+  currentPage,
+  totalPages,
+  onPageChange,
+}) => {
+  if (totalPages <= 1) {
+    return null;
+  }
+
+  return (
+    <div className="pagination">
+
+      <button
+        type="button"
+        onClick={() =>
+          onPageChange(currentPage - 1)
+        }
+        disabled={currentPage === 1}
+      >
+        ← Previous
+      </button>
+
+      {Array.from(
+        { length: totalPages },
+        (_, index) => index + 1
+      ).map((page) => (
+        <button
+          type="button"
+          key={page}
+          onClick={() => onPageChange(page)}
+          className={
+            currentPage === page ? "active" : ""
+          }
+        >
+          {page}
+        </button>
+      ))}
+
+      <button
+        type="button"
+        onClick={() =>
+          onPageChange(currentPage + 1)
+        }
+        disabled={currentPage === totalPages}
+      >
+        Next →
+      </button>
+
+    </div>
+  );
+};
+
+export default Pagination;
