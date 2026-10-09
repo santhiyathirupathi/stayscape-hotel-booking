@@ -92,7 +92,7 @@ const HotelDetails = () => {
 
       <div className="detail-container">
 
-        {/* BACK */}
+       
 
         <div className="detail-top-bar">
           <Link
@@ -103,7 +103,7 @@ const HotelDetails = () => {
           </Link>
         </div>
 
-        {/* IMAGE */}
+      
 
         <img
           src={imageUrl}
@@ -111,7 +111,7 @@ const HotelDetails = () => {
           className="detail-image"
         />
 
-        {/* CONTENT */}
+       
 
         <div className="detail-content">
 
@@ -139,7 +139,7 @@ const HotelDetails = () => {
 
           </div>
 
-          {/* DESCRIPTION */}
+          
 
           <div className="detail-section">
 
@@ -151,7 +151,7 @@ const HotelDetails = () => {
 
           </div>
 
-          {/* COORDINATES */}
+          
 
           <div className="detail-section">
 
@@ -183,7 +183,6 @@ const HotelDetails = () => {
 
           </div>
 
-          {/* MAP */}
 
           <div className="detail-section">
 
@@ -208,7 +207,7 @@ const HotelDetails = () => {
 
           </div>
 
-          {/* ACTIONS */}
+        
 
           <div className="detail-actions">
 
