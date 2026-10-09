@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 
-const API_URL = "http://localhost:5000/api/hotels";
+const API_URL = "https://stayscape-backend-hsty.onrender.com/api/hotels";
 
 export const fetchHotels = createAsyncThunk(
   "hotels/fetchHotels",

@@ -1,57 +1,55 @@
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
 }
 
-body {
-  font-family: Arial, Helvetica, sans-serif;
-  background: #f5f5f5;
-  color: #333;
+body{
+  font-family:Arial, Helvetica, sans-serif;
+  background:#f5f5f5;
+  color:#333;
 }
 
-a {
-  text-decoration: none;
+a{
+  text-decoration:none;
 }
 
 button,
 input,
 textarea,
-select {
+select{
   font-family: Arial, Helvetica, sans-serif;
 }
 
-.hotel-app {
-  min-height: 100vh;
-  background: #f5f5f5;
+.hotel-app{
+  min-height:100vh;
+  background:#f5f5f5;
 }
 
-/* HEADER */
-
-.main-header {
-  width: 100%;
-  max-width: 1100px;
-  height: 72px;
-  margin: auto;
-  padding: 0 20px;
+.main-header{
+  width:100%;
+  max-width:1100px;
+  height:72px;
+  margin:auto;
+  padding:0 20px;
   background: #fff;
 
-  display: flex;
-  align-items: center;
-  gap: 28px;
+  display:flex;
+  align-items:center;
+  gap:28px;
 }
 
-.site-logo {
-  min-width: 145px;
-  color: #3478c9;
-  font-size: 24px;
-  font-weight: 800;
-  letter-spacing: 1px;
+.site-logo{
+  min-width:145px;
+  color:#3478c9;
+  font-size:24px;
+  font-weight:800;
+  letter-spacing:1px;
 }
 
-.header-search {
-  height: 36px;
-  max-width: 430px;
+.header-search{
+  height:36px;
+  max-width:430px;
   flex: 1;
   display: flex;
 }
@@ -518,8 +516,6 @@ select {
   opacity: 0.45;
   cursor: not-allowed;
 }
-
-/* FOOTER */
 
 .site-footer {
   margin-top: 45px;

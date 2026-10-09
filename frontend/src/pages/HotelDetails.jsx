@@ -9,7 +9,7 @@ const HotelDetails = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`http://localhost:5000/api/hotels/${id}`)
+   fetch(`https://stayscape-backend-hsty.onrender.com/api/hotels/${id}`)
       .then((response) => {
         if (!response.ok) {
           throw new Error("Hotel not found");
