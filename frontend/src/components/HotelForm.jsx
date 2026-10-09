@@ -116,7 +116,7 @@ const HotelForm = ({
       className="hotel-form"
       onSubmit={handleSubmit}
     >
-      {/* IMAGE */}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
 
       <div className="form-group image-group">
         <label>Hotel Image</label>
@@ -138,7 +138,7 @@ const HotelForm = ({
         )}
       </div>
 
-      {/* TITLE */}
+      
 
       <div className="form-group">
         <label>Title</label>
@@ -159,7 +159,7 @@ const HotelForm = ({
         )}
       </div>
 
-      {/* DESCRIPTION */}
+      
 
       <div className="form-group">
         <label>Description</label>
@@ -180,7 +180,7 @@ const HotelForm = ({
         )}
       </div>
 
-      {/* LATITUDE + LONGITUDE */}
+      
 
       <div className="form-row">
         <div className="form-group">

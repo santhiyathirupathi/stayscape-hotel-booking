@@ -1,8 +1,7 @@
 const express = require("express");
 const cors = require("cors");
-const path = require("path");
-const fs = require("fs");
 const multer = require("multer");
+const { v2: cloudinary } = require("cloudinary");
 require("dotenv").config();
 
 const pool = require("./db");
@@ -12,44 +11,19 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-/* UPLOAD FOLDER */
+/* CLOUDINARY */
 
-const uploadFolder = path.join(
-  __dirname,
-  "uploads"
-);
-
-if (!fs.existsSync(uploadFolder)) {
-  fs.mkdirSync(uploadFolder);
-}
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 /* MULTER */
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadFolder);
-  },
-
-  filename: (req, file, cb) => {
-    const uniqueName =
-      Date.now() +
-      "-" +
-      file.originalname.replace(/\s+/g, "-");
-
-    cb(null, uniqueName);
-  },
-});
-
 const upload = multer({
-  storage,
+  storage: multer.memoryStorage(),
 });
-
-/* SERVE IMAGES */
-
-app.use(
-  "/uploads",
-  express.static(uploadFolder)
-);
 
 /* HOME */
 
@@ -86,44 +60,24 @@ app.get("/api/hotels", async (req, res) => {
     let values = [];
     let valueIndex = 1;
 
-    /* TITLE SEARCH */
-
     if (title.trim() !== "") {
-      conditions.push(
-        `title ILIKE $${valueIndex}`
-      );
+      conditions.push(`title ILIKE $${valueIndex}`);
 
-      values.push(
-        `%${title.trim()}%`
-      );
+      values.push(`%${title.trim()}%`);
 
       valueIndex++;
     }
 
-    /* MIN PRICE */
-
-    if (
-      minPrice !== undefined &&
-      minPrice !== ""
-    ) {
-      conditions.push(
-        `price >= $${valueIndex}`
-      );
+    if (minPrice !== undefined && minPrice !== "") {
+      conditions.push(`price >= $${valueIndex}`);
 
       values.push(Number(minPrice));
 
       valueIndex++;
     }
 
-    /* MAX PRICE */
-
-    if (
-      maxPrice !== undefined &&
-      maxPrice !== ""
-    ) {
-      conditions.push(
-        `price <= $${valueIndex}`
-      );
+    if (maxPrice !== undefined && maxPrice !== "") {
+      conditions.push(`price <= $${valueIndex}`);
 
       values.push(Number(maxPrice));
 
@@ -135,8 +89,6 @@ app.get("/api/hotels", async (req, res) => {
         ? `WHERE ${conditions.join(" AND ")}`
         : "";
 
-    /* TOTAL */
-
     const countResult = await pool.query(
       `SELECT COUNT(*)
        FROM hotels
@@ -144,11 +96,7 @@ app.get("/api/hotels", async (req, res) => {
       values
     );
 
-    const total = Number(
-      countResult.rows[0].count
-    );
-
-    /* CURRENT PAGE */
+    const total = Number(countResult.rows[0].count);
 
     const hotelResult = await pool.query(
       `SELECT *
@@ -170,7 +118,6 @@ app.get("/api/hotels", async (req, res) => {
       offset: Number(offset),
       limit: Number(limit),
     });
-
   } catch (error) {
     console.error(error);
 
@@ -182,34 +129,30 @@ app.get("/api/hotels", async (req, res) => {
 
 /* GET SINGLE HOTEL */
 
-app.get(
-  "/api/hotels/:id",
-  async (req, res) => {
-    try {
-      const { id } = req.params;
+app.get("/api/hotels/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
 
-      const result = await pool.query(
-        "SELECT * FROM hotels WHERE id = $1",
-        [id]
-      );
+    const result = await pool.query(
+      "SELECT * FROM hotels WHERE id = $1",
+      [id]
+    );
 
-      if (result.rows.length === 0) {
-        return res.status(404).json({
-          message: "Hotel not found",
-        });
-      }
-
-      res.json(result.rows[0]);
-
-    } catch (error) {
-      console.error(error);
-
-      res.status(500).json({
-        message: "Failed to fetch hotel",
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        message: "Hotel not found",
       });
     }
+
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      message: "Failed to fetch hotel",
+    });
   }
-);
+});
 
 /* CREATE HOTEL */
 
@@ -234,10 +177,7 @@ app.post(
         });
       }
 
-      if (
-        !description ||
-        !description.trim()
-      ) {
+      if (!description || !description.trim()) {
         return res.status(400).json({
           message: "Description is required",
         });
@@ -271,12 +211,33 @@ app.post(
         });
       }
 
-      let imagePath = null;
+      /* CLOUDINARY IMAGE */
+
+      let imageUrl = null;
 
       if (req.file) {
-        imagePath =
-          `/uploads/${req.file.filename}`;
+        imageUrl = await new Promise(
+          (resolve, reject) => {
+            const uploadStream =
+              cloudinary.uploader.upload_stream(
+                {
+                  folder: "stayscape-hotels",
+                },
+                (error, result) => {
+                  if (error) {
+                    reject(error);
+                  } else {
+                    resolve(result.secure_url);
+                  }
+                }
+              );
+
+            uploadStream.end(req.file.buffer);
+          }
+        );
       }
+
+      /* DATABASE */
 
       const result = await pool.query(
         `INSERT INTO hotels
@@ -296,7 +257,7 @@ app.post(
           latitude,
           longitude,
           price,
-          imagePath,
+          imageUrl,
         ]
       );
 
@@ -304,7 +265,6 @@ app.post(
         message: "Hotel added successfully",
         hotel: result.rows[0],
       });
-
     } catch (error) {
       console.error(error);
 
@@ -340,10 +300,7 @@ app.put(
         });
       }
 
-      if (
-        !description ||
-        !description.trim()
-      ) {
+      if (!description || !description.trim()) {
         return res.status(400).json({
           message: "Description is required",
         });
@@ -390,27 +347,35 @@ app.put(
         });
       }
 
-      let imagePath =
-        oldHotel.rows[0].image;
+      /* KEEP OLD IMAGE */
 
-      /* UPDATE IMAGE */
+      let imageUrl = oldHotel.rows[0].image;
+
+      /* NEW CLOUDINARY IMAGE */
 
       if (req.file) {
-        imagePath =
-          `/uploads/${req.file.filename}`;
+        imageUrl = await new Promise(
+          (resolve, reject) => {
+            const uploadStream =
+              cloudinary.uploader.upload_stream(
+                {
+                  folder: "stayscape-hotels",
+                },
+                (error, result) => {
+                  if (error) {
+                    reject(error);
+                  } else {
+                    resolve(result.secure_url);
+                  }
+                }
+              );
 
-        if (oldHotel.rows[0].image) {
-          const oldImagePath =
-            path.join(
-              __dirname,
-              oldHotel.rows[0].image
-            );
-
-          if (fs.existsSync(oldImagePath)) {
-            fs.unlinkSync(oldImagePath);
+            uploadStream.end(req.file.buffer);
           }
-        }
+        );
       }
+
+      /* UPDATE DATABASE */
 
       const result = await pool.query(
         `UPDATE hotels
@@ -429,7 +394,7 @@ app.put(
           latitude,
           longitude,
           price,
-          imagePath,
+          imageUrl,
           id,
         ]
       );
@@ -438,7 +403,6 @@ app.put(
         message: "Hotel updated successfully",
         hotel: result.rows[0],
       });
-
     } catch (error) {
       console.error(error);
 
@@ -451,66 +415,41 @@ app.put(
 
 /* DELETE HOTEL */
 
-app.delete(
-  "/api/hotels/:id",
-  async (req, res) => {
-    try {
-      const { id } = req.params;
+app.delete("/api/hotels/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
 
-      const hotelResult = await pool.query(
-        "SELECT * FROM hotels WHERE id = $1",
-        [id]
-      );
+    const hotelResult = await pool.query(
+      "SELECT * FROM hotels WHERE id = $1",
+      [id]
+    );
 
-      if (hotelResult.rows.length === 0) {
-        return res.status(404).json({
-          message: "Hotel not found",
-        });
-      }
-
-      const hotel =
-        hotelResult.rows[0];
-
-      /* DELETE IMAGE */
-
-      if (hotel.image) {
-        const imagePath = path.join(
-          __dirname,
-          hotel.image
-        );
-
-        if (fs.existsSync(imagePath)) {
-          fs.unlinkSync(imagePath);
-        }
-      }
-
-      /* DELETE HOTEL */
-
-      await pool.query(
-        "DELETE FROM hotels WHERE id = $1",
-        [id]
-      );
-
-      res.json({
-        message:
-          "Hotel deleted successfully",
-      });
-
-    } catch (error) {
-      console.error(error);
-
-      res.status(500).json({
-        message:
-          "Failed to delete hotel",
+    if (hotelResult.rows.length === 0) {
+      return res.status(404).json({
+        message: "Hotel not found",
       });
     }
+
+    await pool.query(
+      "DELETE FROM hotels WHERE id = $1",
+      [id]
+    );
+
+    res.json({
+      message: "Hotel deleted successfully",
+    });
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      message: "Failed to delete hotel",
+    });
   }
-);
+});
 
 /* START SERVER */
 
-const PORT =
-  process.env.PORT || 5000;
+const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
   console.log(
