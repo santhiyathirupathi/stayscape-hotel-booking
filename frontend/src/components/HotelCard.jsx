@@ -21,7 +21,6 @@ const HotelCard = ({ hotel, onDelete }) => {
 
   return (
     <article className="hotel-card">
-
       <Link
         to={`/hotel/${hotel.id}`}
         className="hotel-card-image-link"
@@ -34,9 +33,7 @@ const HotelCard = ({ hotel, onDelete }) => {
       </Link>
 
       <div className="hotel-card-content">
-
         <div className="hotel-card-main">
-
           <Link
             to={`/hotel/${hotel.id}`}
             className="hotel-card-title"
@@ -57,13 +54,10 @@ const HotelCard = ({ hotel, onDelete }) => {
             <br />
             Longitude: {hotel.longitude}
           </div>
-
         </div>
 
         <div className="hotel-card-side">
-
           <div className="hotel-price-section">
-
             <div className="hotel-card-price">
               ₹{Number(hotel.price).toLocaleString("en-IN")}
             </div>
@@ -71,11 +65,9 @@ const HotelCard = ({ hotel, onDelete }) => {
             <span className="price-night">
               per night
             </span>
-
           </div>
 
           <div className="hotel-card-actions">
-
             <Link
               to={`/hotel/${hotel.id}`}
               className="view-btn"
@@ -97,13 +89,9 @@ const HotelCard = ({ hotel, onDelete }) => {
             >
               Delete
             </button>
-
           </div>
-
         </div>
-
       </div>
-
     </article>
   );
 };
