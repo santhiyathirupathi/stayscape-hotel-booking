@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
@@ -25,8 +26,8 @@ const HotelList = () => {
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
   const [page, setPage] = useState(1);
-
   const [sort, setSort] = useState("default");
+  const [category, setCategory] = useState("all");
 
   const currentLimit = Number(limit) || 6;
 
@@ -55,6 +56,7 @@ const HotelList = () => {
 
   const handleSearch = (e) => {
     setSearch(e.target.value);
+    setCategory("all");
     setPage(1);
   };
 
@@ -65,6 +67,20 @@ const HotelList = () => {
 
   const handleMaxPrice = (e) => {
     setMaxPrice(e.target.value);
+    setPage(1);
+  };
+
+  const handleRelatedSearch = (type) => {
+    setCategory(type);
+    setSearch("");
+    setPage(1);
+  };
+
+  const clearFilters = () => {
+    setSearch("");
+    setMinPrice("");
+    setMaxPrice("");
+    setCategory("all");
     setPage(1);
   };
 
@@ -92,7 +108,56 @@ const HotelList = () => {
     }
   };
 
-  const sortedHotels = [...hotels].sort((a, b) => {
+  const categoryKeywords = {
+    luxury: [
+      "luxury",
+      "premium",
+      "palace",
+      "grand",
+      "royal",
+      "five star",
+      "5 star",
+    ],
+
+    resort: [
+      "resort",
+      "beach",
+      "retreat",
+      "holiday resort",
+    ],
+
+    city: [
+      "city",
+      "urban",
+      "downtown",
+      "central",
+    ],
+
+    budget: [
+      "budget",
+      "affordable",
+      "economy",
+      "cheap",
+      "value",
+    ],
+  };
+
+  const filteredHotels = hotels.filter((hotel) => {
+    if (category === "all") {
+      return true;
+    }
+
+    const text = `
+      ${hotel.title || ""}
+      ${hotel.description || ""}
+    `.toLowerCase();
+
+    return categoryKeywords[category].some((keyword) =>
+      text.includes(keyword)
+    );
+  });
+
+  const sortedHotels = [...filteredHotels].sort((a, b) => {
     if (sort === "price-low") {
       return Number(a.price) - Number(b.price);
     }
@@ -108,10 +173,16 @@ const HotelList = () => {
     return 0;
   });
 
+  const categoryName = {
+    all: "All Hotels",
+    luxury: "Luxury Hotels",
+    resort: "Resorts",
+    city: "City Hotels",
+    budget: "Budget Hotels",
+  };
+
   return (
     <div className="hotel-app">
-
-      {/* HEADER */}
 
       <header className="main-header">
 
@@ -125,7 +196,7 @@ const HotelList = () => {
             type="text"
             value={search}
             onChange={handleSearch}
-            placeholder="Search hotels"
+            placeholder="Search hotels by name..."
           />
 
           <button type="button">
@@ -147,13 +218,14 @@ const HotelList = () => {
 
       </header>
 
-      {/* BLUE BANNER */}
 
       <div className="hotel-banner">
 
         <div className="banner-content">
 
-          <h1>Hotels</h1>
+          <h1>
+            Find Your Perfect Stay
+          </h1>
 
           <div className="breadcrumbs">
             Home
@@ -165,13 +237,10 @@ const HotelList = () => {
 
       </div>
 
-      {/* MAIN */}
 
       <main className="hotel-page">
 
         <div className="hotel-layout">
-
-          {/* FILTER SIDEBAR */}
 
           <aside className="filter-sidebar">
 
@@ -183,15 +252,84 @@ const HotelList = () => {
 
               <div className="filter-list">
 
-                <div>Hotels</div>
-                <div>Luxury Hotels</div>
-                <div>Resorts</div>
-                <div>City Hotels</div>
-                <div>Budget Hotels</div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleRelatedSearch("all")
+                  }
+                  className={
+                    category === "all"
+                      ? "related-item active"
+                      : "related-item"
+                  }
+                >
+                  All Hotels
+                </button>
+
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleRelatedSearch("luxury")
+                  }
+                  className={
+                    category === "luxury"
+                      ? "related-item active"
+                      : "related-item"
+                  }
+                >
+                  Luxury Hotels
+                </button>
+
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleRelatedSearch("resort")
+                  }
+                  className={
+                    category === "resort"
+                      ? "related-item active"
+                      : "related-item"
+                  }
+                >
+                  Resorts
+                </button>
+
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleRelatedSearch("city")
+                  }
+                  className={
+                    category === "city"
+                      ? "related-item active"
+                      : "related-item"
+                  }
+                >
+                  City Hotels
+                </button>
+
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleRelatedSearch("budget")
+                  }
+                  className={
+                    category === "budget"
+                      ? "related-item active"
+                      : "related-item"
+                  }
+                >
+                  Budget Hotels
+                </button>
 
               </div>
 
             </div>
+
 
             <div className="filter-box">
 
@@ -209,10 +347,11 @@ const HotelList = () => {
 
             </div>
 
+
             <div className="filter-box">
 
               <div className="filter-title">
-                Price
+                Price Range
               </div>
 
               <div className="price-filter">
@@ -225,7 +364,9 @@ const HotelList = () => {
                   min="0"
                 />
 
-                <span>to</span>
+                <span>
+                  to
+                </span>
 
                 <input
                   type="number"
@@ -239,21 +380,63 @@ const HotelList = () => {
 
             </div>
 
+
+            {(search ||
+              minPrice ||
+              maxPrice ||
+              category !== "all") && (
+
+              <button
+                type="button"
+                className="clear-filter-btn"
+                onClick={clearFilters}
+              >
+                Clear Filters
+              </button>
+
+            )}
+
           </aside>
 
-          {/* CONTENT */}
 
           <section className="hotel-content">
 
             <div className="hotel-content-top">
 
-              <div className="hotel-count">
-                {total} Hotels Found
+              <div>
+
+                <div className="hotel-count">
+
+                  {category === "all"
+                    ? `${total} Hotels Found`
+                    : `${filteredHotels.length} ${categoryName[category]} Found`}
+
+                </div>
+
+
+                {(search ||
+                  minPrice ||
+                  maxPrice ||
+                  category !== "all") && (
+
+                  <div className="active-filter-text">
+
+                    {category !== "all"
+                      ? `Showing ${categoryName[category]}`
+                      : "Showing filtered results"}
+
+                  </div>
+
+                )}
+
               </div>
+
 
               <div className="hotel-sort">
 
-                <label>Sort by</label>
+                <label>
+                  Sort by
+                </label>
 
                 <select
                   value={sort}
@@ -261,6 +444,7 @@ const HotelList = () => {
                     setSort(e.target.value)
                   }
                 >
+
                   <option value="default">
                     Best Match
                   </option>
@@ -276,31 +460,46 @@ const HotelList = () => {
                   <option value="price-high">
                     Price: High to Low
                   </option>
+
                 </select>
 
               </div>
 
             </div>
 
+
             {loading && (
+
               <div className="list-message">
                 Loading hotels...
               </div>
+
             )}
 
+
             {!loading && error && (
+
               <div className="list-message error-message">
                 {error}
               </div>
+
             )}
+
 
             {!loading &&
               !error &&
               sortedHotels.length === 0 && (
+
                 <div className="list-message">
-                  No hotels found.
+
+                  No {category === "all"
+                    ? "hotels"
+                    : categoryName[category].toLowerCase()} found.
+
                 </div>
+
               )}
+
 
             {!loading &&
               !error &&
@@ -309,24 +508,30 @@ const HotelList = () => {
                 <div className="hotel-list">
 
                   {sortedHotels.map((hotel) => (
+
                     <HotelCard
                       key={hotel.id}
                       hotel={hotel}
                       onDelete={handleDelete}
                     />
+
                   ))}
 
                 </div>
 
               )}
 
-            {totalPages > 1 && (
-              <Pagination
-                currentPage={page}
-                totalPages={totalPages}
-                onPageChange={setPage}
-              />
-            )}
+
+            {category === "all" &&
+              totalPages > 1 && (
+
+                <Pagination
+                  currentPage={page}
+                  totalPages={totalPages}
+                  onPageChange={setPage}
+                />
+
+              )}
 
           </section>
 
@@ -334,13 +539,13 @@ const HotelList = () => {
 
       </main>
 
-      {/* FOOTER */}
 
       <footer className="site-footer">
 
         <div className="footer-inner">
 
           <div className="footer-brand">
+
             <div className="footer-logo">
               STAYSCAPE
             </div>
@@ -348,32 +553,83 @@ const HotelList = () => {
             <div className="footer-copy">
               © 2026 StayScape
             </div>
+
           </div>
 
-          <div className="footer-column">
-            <h4>STORE</h4>
-            <span>About us</span>
-            <span>Hotels</span>
-            <span>Destinations</span>
-          </div>
 
           <div className="footer-column">
-            <h4>INFORMATION</h4>
-            <span>Help center</span>
-            <span>Hotel details</span>
-            <span>Booking information</span>
+
+            <h4>
+              STORE
+            </h4>
+
+            <span>
+              About us
+            </span>
+
+            <span>
+              Hotels
+            </span>
+
+            <span>
+              Destinations
+            </span>
+
           </div>
 
-          <div className="footer-column">
-            <h4>SUPPORT</h4>
-            <span>Contact us</span>
-            <span>Documents</span>
-            <span>Customer support</span>
-          </div>
 
           <div className="footer-column">
-            <h4>NEWSLETTER</h4>
-            <span>Stay updated with latest hotels</span>
+
+            <h4>
+              INFORMATION
+            </h4>
+
+            <span>
+              Help center
+            </span>
+
+            <span>
+              Hotel details
+            </span>
+
+            <span>
+              Booking information
+            </span>
+
+          </div>
+
+
+          <div className="footer-column">
+
+            <h4>
+              SUPPORT
+            </h4>
+
+            <span>
+              Contact us
+            </span>
+
+            <span>
+              Documents
+            </span>
+
+            <span>
+              Customer support
+            </span>
+
+          </div>
+
+
+          <div className="footer-column">
+
+            <h4>
+              NEWSLETTER
+            </h4>
+
+            <span>
+              Stay updated with latest hotels
+            </span>
+
           </div>
 
         </div>

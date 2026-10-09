@@ -18,6 +18,13 @@ const HotelForm = ({
 
   useEffect(() => {
     if (!initialData) {
+      setTitle("");
+      setDescription("");
+      setLatitude("");
+      setLongitude("");
+      setPrice("");
+      setImage(null);
+      setPreview("");
       return;
     }
 
@@ -28,16 +35,21 @@ const HotelForm = ({
     setPrice(initialData.price || "");
 
     if (initialData.image) {
-      setPreview(
-        initialData.image.startsWith("http")
-          ? initialData.image
-          : `http://localhost:5000${initialData.image}`
-      );
+      if (initialData.image.startsWith("http")) {
+        setPreview(initialData.image);
+      } else {
+        setPreview("");
+      }
+    } else {
+      setPreview("");
     }
+
+    setImage(null);
+    setErrors({});
   }, [initialData]);
 
   const handleImageChange = (e) => {
-    const selectedImage = e.target.files[0];
+    const selectedImage = e.target.files?.[0];
 
     if (!selectedImage) {
       return;
@@ -116,9 +128,11 @@ const HotelForm = ({
       className="hotel-form"
       onSubmit={handleSubmit}
     >
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
+
+      {/* IMAGE */}
 
       <div className="form-group image-group">
+
         <label>Hotel Image</label>
 
         <input
@@ -136,11 +150,13 @@ const HotelForm = ({
             />
           </div>
         )}
+
       </div>
 
-      
+      {/* TITLE */}
 
       <div className="form-group">
+
         <label>Title</label>
 
         <input
@@ -157,11 +173,13 @@ const HotelForm = ({
             {errors.title}
           </p>
         )}
+
       </div>
 
-      
+      {/* DESCRIPTION */}
 
       <div className="form-group">
+
         <label>Description</label>
 
         <textarea
@@ -178,12 +196,15 @@ const HotelForm = ({
             {errors.description}
           </p>
         )}
+
       </div>
 
-      
+      {/* LOCATION */}
 
       <div className="form-row">
+
         <div className="form-group">
+
           <label>Latitude</label>
 
           <input
@@ -201,9 +222,11 @@ const HotelForm = ({
               {errors.latitude}
             </p>
           )}
+
         </div>
 
         <div className="form-group">
+
           <label>Longitude</label>
 
           <input
@@ -221,12 +244,15 @@ const HotelForm = ({
               {errors.longitude}
             </p>
           )}
+
         </div>
+
       </div>
 
       {/* PRICE */}
 
       <div className="form-group">
+
         <label>Price</label>
 
         <input
@@ -245,6 +271,7 @@ const HotelForm = ({
             {errors.price}
           </p>
         )}
+
       </div>
 
       {/* SUBMIT */}
@@ -255,6 +282,7 @@ const HotelForm = ({
       >
         {submitText}
       </button>
+
     </form>
   );
 };
