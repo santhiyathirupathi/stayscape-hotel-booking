@@ -1,12 +1,8 @@
 import { Link } from "react-router-dom";
-
-const defaultImage =
-  "https://i.pinimg.com/736x/36/09/08/360908ad4725d5f9b87bb6f9b26cdd91.jpg";
+import { getImageUrl, DEFAULT_HOTEL_IMAGE } from "../api";
 
 const HotelCard = ({ hotel, onDelete }) => {
-  const imageUrl = hotel.image?.startsWith("http")
-    ? hotel.image
-    : defaultImage;
+  const imageUrl = getImageUrl(hotel.image);
 
   return (
     <article className="hotel-card">
@@ -16,8 +12,12 @@ const HotelCard = ({ hotel, onDelete }) => {
       >
         <img
           src={imageUrl}
-          alt={hotel.title}
+          alt={`Photo of ${hotel.title}`}
           className="hotel-card-image"
+          onError={(e) => {
+            e.target.onerror = null;
+            e.target.src = DEFAULT_HOTEL_IMAGE;
+          }}
         />
       </Link>
 

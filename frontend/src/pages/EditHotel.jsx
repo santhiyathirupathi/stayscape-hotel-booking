@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
+import { Helmet } from "react-helmet-async";
 
 import HotelForm from "../components/HotelForm";
 
@@ -57,6 +58,13 @@ const EditHotel = () => {
 
   return (
     <div className="form-page">
+      <Helmet>
+        <title>{hotel?.title ? `Edit ${hotel.title} | StayScape` : "Edit Hotel | StayScape"}</title>
+        <meta
+          name="description"
+          content={`Edit details, coordinates, and pricing for ${hotel?.title || "hotel"}.`}
+        />
+      </Helmet>
       <div className="form-page-header">
         <div>
           <h1>Edit Hotel</h1>

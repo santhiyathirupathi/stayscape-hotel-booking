@@ -1,8 +1,10 @@
 const express = require("express");
 const cors = require("cors");
 const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
 const { v2: cloudinary } = require("cloudinary");
-require("dotenv").config();
+require("dotenv").config({ path: path.join(__dirname, ".env") });
 
 const pool = require("./db");
 
@@ -10,6 +12,14 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+/* UPLOADS DIRECTORY & STATIC SERVING */
+const uploadsDir = path.join(__dirname, "uploads");
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+app.use("/uploads", express.static(uploadsDir));
 
 /* CLOUDINARY */
 
@@ -23,7 +33,44 @@ cloudinary.config({
 
 const upload = multer({
   storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 },
 });
+
+/* HELPER: SAVE FILE (CLOUDINARY OR LOCAL DISK) */
+const saveUploadedFile = async (file) => {
+  if (!file) return null;
+
+  // Try Cloudinary first if configured
+  if (
+    process.env.CLOUDINARY_CLOUD_NAME &&
+    process.env.CLOUDINARY_API_KEY &&
+    process.env.CLOUDINARY_API_SECRET
+  ) {
+    try {
+      const secureUrl = await new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          { folder: "stayscape-hotels" },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result.secure_url);
+          }
+        );
+        uploadStream.end(file.buffer);
+      });
+
+      if (secureUrl) return secureUrl;
+    } catch (cloudErr) {
+      console.warn("Cloudinary upload failed, falling back to local file storage:", cloudErr.message);
+    }
+  }
+
+  // Fallback: save to local uploads directory
+  const ext = path.extname(file.originalname) || ".jpg";
+  const filename = `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
+  const filePath = path.join(uploadsDir, filename);
+  fs.writeFileSync(filePath, file.buffer);
+  return `/uploads/${filename}`;
+};
 
 /* HOME */
 
@@ -211,30 +258,10 @@ app.post(
         });
       }
 
-      /* CLOUDINARY IMAGE */
-
+      /* PROCESS IMAGE */
       let imageUrl = null;
-
       if (req.file) {
-        imageUrl = await new Promise(
-          (resolve, reject) => {
-            const uploadStream =
-              cloudinary.uploader.upload_stream(
-                {
-                  folder: "stayscape-hotels",
-                },
-                (error, result) => {
-                  if (error) {
-                    reject(error);
-                  } else {
-                    resolve(result.secure_url);
-                  }
-                }
-              );
-
-            uploadStream.end(req.file.buffer);
-          }
-        );
+        imageUrl = await saveUploadedFile(req.file);
       }
 
       /* DATABASE */
@@ -351,28 +378,9 @@ app.put(
 
       let imageUrl = oldHotel.rows[0].image;
 
-      /* NEW CLOUDINARY IMAGE */
-
+      /* PROCESS IMAGE */
       if (req.file) {
-        imageUrl = await new Promise(
-          (resolve, reject) => {
-            const uploadStream =
-              cloudinary.uploader.upload_stream(
-                {
-                  folder: "stayscape-hotels",
-                },
-                (error, result) => {
-                  if (error) {
-                    reject(error);
-                  } else {
-                    resolve(result.secure_url);
-                  }
-                }
-              );
-
-            uploadStream.end(req.file.buffer);
-          }
-        );
+        imageUrl = await saveUploadedFile(req.file);
       }
 
       /* UPDATE DATABASE */

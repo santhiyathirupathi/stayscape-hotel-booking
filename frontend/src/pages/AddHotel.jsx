@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
+import { Helmet } from "react-helmet-async";
 
 import HotelForm from "../components/HotelForm";
 import { addHotel } from "../redux/hotelSlice";
@@ -23,6 +24,13 @@ const AddHotel = () => {
 
   return (
     <div className="form-page">
+      <Helmet>
+        <title>Add New Hotel | StayScape</title>
+        <meta
+          name="description"
+          content="List and add a new hotel with pricing, photos, coordinates, and description on StayScape."
+        />
+      </Helmet>
       <div className="form-page-header">
         <div>
           <h1>Add Hotel</h1>

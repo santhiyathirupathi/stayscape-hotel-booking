@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 
 import {
   fetchHotels,
@@ -28,6 +29,7 @@ const HotelList = () => {
   const [page, setPage] = useState(1);
   const [sort, setSort] = useState("default");
   const [category, setCategory] = useState("all");
+  const [deleteSuccessMsg, setDeleteSuccessMsg] = useState("");
 
   const currentLimit = Number(limit) || 6;
 
@@ -94,7 +96,10 @@ const HotelList = () => {
     const result = await dispatch(deleteHotel(id));
 
     if (deleteHotel.fulfilled.match(result)) {
-      alert("Hotel deleted successfully");
+      setDeleteSuccessMsg("Hotel deleted successfully!");
+      setTimeout(() => {
+        setDeleteSuccessMsg("");
+      }, 3500);
 
       dispatch(
         fetchHotels({
@@ -183,6 +188,53 @@ const HotelList = () => {
 
   return (
     <div className="hotel-app">
+      <Helmet>
+        <title>StayScape - Find Your Perfect Hotel Stay</title>
+        <meta
+          name="description"
+          content="Search, filter, and book top-rated hotels, luxury resorts, and budget accommodations on StayScape."
+        />
+      </Helmet>
+
+      {deleteSuccessMsg && (
+        <div
+          role="alert"
+          style={{
+            position: "fixed",
+            top: "24px",
+            right: "24px",
+            backgroundColor: "#059669",
+            color: "#ffffff",
+            padding: "14px 22px",
+            borderRadius: "8px",
+            boxShadow: "0 6px 20px rgba(0, 0, 0, 0.25)",
+            zIndex: 9999,
+            display: "flex",
+            alignItems: "center",
+            gap: "12px",
+            fontWeight: "600",
+            fontSize: "15px",
+            animation: "fadeIn 0.2s ease-in-out",
+          }}
+        >
+          <span>✓ {deleteSuccessMsg}</span>
+          <button
+            type="button"
+            onClick={() => setDeleteSuccessMsg("")}
+            style={{
+              background: "transparent",
+              border: "none",
+              color: "#ffffff",
+              fontSize: "18px",
+              cursor: "pointer",
+              marginLeft: "8px",
+              lineHeight: 1,
+            }}
+          >
+            ✕
+          </button>
+        </div>
+      )}
 
       <header className="main-header">
 

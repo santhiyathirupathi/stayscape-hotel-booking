@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { getImageUrl } from "../api";
 
 const HotelForm = ({
   initialData,
@@ -30,16 +31,12 @@ const HotelForm = ({
 
     setTitle(initialData.title || "");
     setDescription(initialData.description || "");
-    setLatitude(initialData.latitude || "");
-    setLongitude(initialData.longitude || "");
-    setPrice(initialData.price || "");
+    setLatitude(initialData.latitude !== undefined ? String(initialData.latitude) : "");
+    setLongitude(initialData.longitude !== undefined ? String(initialData.longitude) : "");
+    setPrice(initialData.price !== undefined ? String(initialData.price) : "");
 
     if (initialData.image) {
-      if (initialData.image.startsWith("http")) {
-        setPreview(initialData.image);
-      } else {
-        setPreview("");
-      }
+      setPreview(getImageUrl(initialData.image));
     } else {
       setPreview("");
     }
@@ -76,19 +73,28 @@ const HotelForm = ({
         "Description is required";
     }
 
-    if (latitude === "") {
+    const latNum = Number(latitude);
+    if (latitude === "" || latitude === null || isNaN(latNum)) {
       newErrors.latitude =
-        "Latitude is required";
+        "Valid latitude is required (-90 to 90)";
+    } else if (latNum < -90 || latNum > 90) {
+      newErrors.latitude =
+        "Latitude must be between -90 and 90";
     }
 
-    if (longitude === "") {
+    const lngNum = Number(longitude);
+    if (longitude === "" || longitude === null || isNaN(lngNum)) {
       newErrors.longitude =
-        "Longitude is required";
+        "Valid longitude is required (-180 to 180)";
+    } else if (lngNum < -180 || lngNum > 180) {
+      newErrors.longitude =
+        "Longitude must be between -180 and 180";
     }
 
-    if (price === "") {
-      newErrors.price = "Price is required";
-    } else if (Number(price) <= 0) {
+    const priceNum = Number(price);
+    if (price === "" || price === null || isNaN(priceNum)) {
+      newErrors.price = "Valid price is required";
+    } else if (priceNum <= 0) {
       newErrors.price =
         "Price must be greater than 0";
     }
